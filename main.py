@@ -4,6 +4,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Load the data
 file_path = 'Dataset/train.csv'
@@ -44,7 +46,7 @@ class DataProcessor:
 
     def split_data(self):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            self.features, self.target, test_size=0.2, random_state=42
+            self.features, self.target, test_size=0.5, random_state=42
         )
         scaler = StandardScaler()
         self.X_train = scaler.fit_transform(self.X_train)
@@ -58,6 +60,15 @@ class DataProcessor:
         y_pred = self.model.predict(self.X_test)
         print("Accuracy:", accuracy_score(self.y_test, y_pred))
         print(classification_report(self.y_test, y_pred))
+
+    def plot_feature_importance(self):
+        importances_df = self.feature_importance()
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x='Importance', y='Feature', data=importances_df)
+        plt.title('Feature Importance')
+        plt.xlabel('Importance')
+        plt.ylabel('Features')
+        plt.show()
 
 # Usage
 if __name__ == "__main__":
