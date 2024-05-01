@@ -10,99 +10,59 @@ file_path = 'Dataset/train.csv'
 data = pd.read_csv(file_path)
 print(data.head())  # This will print the first 5 rows of your DataFrame
 
-
-import pandas as pd
-
 class DataProcessor:
     def __init__(self, file_path):
         self.data = pd.read_csv(file_path)
+        self.features = None
+        self.target = None
+        self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None
+        self.model = RandomForestClassifier(n_estimators=100, random_state=42)
 
     @staticmethod
     def transform_gender(x):
-        if x == 'Female':
-            return 1
-        elif x == 'Male':
-            return 0
-        else:
-            return -1
+        return 1 if x == 'Female' else 0 if x == 'Male' else -1
 
     @staticmethod
     def transform_customer_type(x):
-        if x == 'Loyal Customer':
-            return 1
-        elif x == 'disloyal Customer':
-            return 0
-        else:
-            return -1
-
-    @staticmethod
-    def transform_travel_type(x):
-        if x == 'Business travel':
-            return 1
-        elif x == 'Personal Travel':
-            return 0
-        else:
-            return -1
-
-    @staticmethod
-    def transform_class(x):
-        if x == 'Business':
-            return 2
-        elif x == 'Eco Plus':
-            return 1
-        elif x == 'Eco':
-            return 0
-        else:
-            return -1
-
-    @staticmethod
-    def transform_satisfaction(x):
-        if x == 'satisfied':
-            return 1
-        elif x == 'neutral or dissatisfied':
-            return 0
-        else:
-            return -1
+        return 1 if x == 'Loyal Customer' else 0 if x == 'disloyal Customer' else -1
 
     def process_data(self):
         self.data = self.data.drop(['Unnamed: 0', 'id'], axis=1)
-        self.data['Gender'] = self.data['Gender'].apply(self.transform_gender)
-        self.data['Customer Type'] = self.data['Customer Type'].apply(self.transform_customer_type)
-        self.data['Type of Travel'] = self.data['Type of Travel'].apply(self.transform_travel_type)
-        self.data['Class'] = self.data['Class'].apply(self.transform_class)
-        self.data['satisfaction'] = self.data['satisfaction'].apply(self.transform_satisfaction)
+        transformations = {
+            'Gender': self.transform_gender,
+            'Customer Type': self.transform_customer_type,
+            'Type of Travel': lambda x: 1 if x == 'Business travel' else 0,
+            'Class': lambda x: {'Business': 2, 'Eco Plus': 1, 'Eco': 0}.get(x, -1),
+            'satisfaction': lambda x: 1 if x == 'satisfied' else 0
+        }
+        for col, func in transformations.items():
+            self.data[col] = self.data[col].apply(func)
         self.data['Arrival Delay in Minutes'].fillna(self.data['Arrival Delay in Minutes'].median(), inplace=True)
-
+        self.features = self.data.drop('satisfaction', axis=1)
+        self.target = self.data['satisfaction']
         return self.data
+
+    def split_data(self):
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+            self.features, self.target, test_size=0.2, random_state=42
+        )
+        scaler = StandardScaler()
+        self.X_train = scaler.fit_transform(self.X_train)
+        self.X_test = scaler.transform(self.X_test)
+
+    def train_model(self):
+        self.model.fit(self.X_train, self.y_train)
+        print("Model trained successfully.")
+
+    def evaluate_model(self):
+        y_pred = self.model.predict(self.X_test)
+        print("Accuracy:", accuracy_score(self.y_test, y_pred))
+        print(classification_report(self.y_test, y_pred))
 
 # Usage
 if __name__ == "__main__":
-    train_processor = DataProcessor('Dataset/train.csv')
-
-    train_data = train_processor.process_data()
-
-    print(train_data.head())
-
-def split_data(self):
-        features = ['Gender', 'Customer Type', 'Age', 'Type of Travel', 'Class',
-                    'Flight Distance', 'Inflight wifi service',
-                    'Departure/Arrival time convenient', 'Ease of Online booking',
-                    'Gate location', 'Food and drink', 'Online boarding', 'Seat comfort',
-                    'Inflight entertainment', 'On-board service', 'Leg room service',
-                    'Baggage handling', 'Checkin service', 'Inflight service',
-                    'Cleanliness', 'Departure Delay in Minutes', 'Arrival Delay in Minutes']
-        target = 'satisfaction'
-        
-        X_train = self.train[features]
-        y_train = self.train[target]
-        X_test = self.test[features]
-        y_test = self.test[target]
-
-        # Normalize Features
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)  # Use transform here to avoid data leakage
-
-        return X_train_scaled, y_train, X_test_scaled, y_test
-
-
+    processor = DataProcessor('Dataset/train.csv')
+    processor.process_data()
+    processor.split_data()
+    processor.train_model()
+    processor.evaluate_model()
