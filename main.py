@@ -60,6 +60,15 @@ class DataProcessor:
         y_pred = self.model.predict(self.X_test)
         print("Accuracy:", accuracy_score(self.y_test, y_pred))
         print(classification_report(self.y_test, y_pred))
+    
+    def feature_importance(self):
+        importances = self.model.feature_importances_
+        feature_names = self.features.columns
+        feature_importance_dict = dict(zip(feature_names, importances))
+        importances_df = pd.DataFrame(sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True),
+        columns=['Feature', 'Importance'])
+        
+        return importances_df
 
     def plot_feature_importance(self):
         importances_df = self.feature_importance()
@@ -77,3 +86,4 @@ if __name__ == "__main__":
     processor.split_data()
     processor.train_model()
     processor.evaluate_model()
+    processor.plot_feature_importance()
