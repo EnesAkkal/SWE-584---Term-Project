@@ -81,11 +81,12 @@ class DataProcessor:
 
     def plot_feature_importance(self):
         importances_df = self.feature_importance()
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(12, 10))  # Adjust the figure size
         sns.barplot(x='Importance', y='Feature', data=importances_df)
         plt.title('Feature Importance')
         plt.xlabel('Importance')
         plt.ylabel('Features')
+        plt.subplots_adjust(left=0.3)  # Adjust the left margin
         plt.show()
 
 # Usage
