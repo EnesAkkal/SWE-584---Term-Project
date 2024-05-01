@@ -1,16 +1,11 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-# Load the data
-file_path = 'Dataset/train.csv'
-data = pd.read_csv(file_path)
-print(data.head())  # This will print the first 5 rows of your DataFrame
 
 class DataProcessor:
     def __init__(self, file_path):
@@ -18,7 +13,8 @@ class DataProcessor:
         self.features = None
         self.target = None
         self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None
-        self.model = RandomForestClassifier(n_estimators=100, random_state=42)
+        self.rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+        self.lr_model = LogisticRegression(random_state=42, max_iter=500)
 
     @staticmethod
     def transform_gender(x):
@@ -53,16 +49,29 @@ class DataProcessor:
         self.X_test = scaler.transform(self.X_test)
 
     def train_model(self):
-        self.model.fit(self.X_train, self.y_train)
-        print("Model trained successfully.")
+        # Train Random Forest
+        self.rf_model.fit(self.X_train, self.y_train)
+        print("Random Forest model trained successfully.")
+
+        # Train Logistic Regression
+        self.lr_model.fit(self.X_train, self.y_train)
+        print("Logistic Regression model trained successfully.")
 
     def evaluate_model(self):
-        y_pred = self.model.predict(self.X_test)
-        print("Accuracy:", accuracy_score(self.y_test, y_pred))
-        print(classification_report(self.y_test, y_pred))
+        # Evaluate Random Forest
+        rf_pred = self.rf_model.predict(self.X_test)
+        print("Random Forest Accuracy:", accuracy_score(self.y_test, rf_pred))
+        print("Random Forest Classification Report:")
+        print(classification_report(self.y_test, rf_pred))
+
+        # Evaluate Logistic Regression
+        lr_pred = self.lr_model.predict(self.X_test)
+        print("Logistic Regression Accuracy:", accuracy_score(self.y_test, lr_pred))
+        print("Logistic Regression Classification Report:")
+        print(classification_report(self.y_test, lr_pred))
     
     def feature_importance(self):
-        importances = self.model.feature_importances_
+        importances = self.rf_model.feature_importances_
         feature_names = self.features.columns
         feature_importance_dict = dict(zip(feature_names, importances))
         importances_df = pd.DataFrame(sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True),
