@@ -13,8 +13,10 @@ class DataProcessor:
         self.features = None
         self.target = None
         self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None
-        self.rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
-        self.lr_model = LogisticRegression(random_state=42, max_iter=500)
+        self.rf_model = RandomForestClassifier(n_estimators=30, random_state=42)
+        self.lr_model = LogisticRegression(random_state=42, max_iter=50)
+        print(self.data.columns)
+
 
     @staticmethod
     def transform_gender(x):
@@ -30,14 +32,21 @@ class DataProcessor:
             'Gender': self.transform_gender,
             'Customer Type': self.transform_customer_type,
             'Type of Travel': lambda x: 1 if x == 'Business travel' else 0,
-            'Class': lambda x: {'Business': 2, 'Eco Plus': 1, 'Eco': 0}.get(x, -1),
             'satisfaction': lambda x: 1 if x == 'satisfied' else 0
         }
         for col, func in transformations.items():
             self.data[col] = self.data[col].apply(func)
+        
+        class_dummies = pd.get_dummies(self.data['Class'], prefix='Class')
+        self.data = pd.concat([self.data.drop('Class', axis=1), class_dummies], axis=1)
+        
         self.data['Arrival Delay in Minutes'].fillna(self.data['Arrival Delay in Minutes'].median(), inplace=True)
+        self.data.drop(['Gender', 'Departure Delay in Minutes', 'Food and drink'], axis=1, inplace=True)
+        
         self.features = self.data.drop('satisfaction', axis=1)
         self.target = self.data['satisfaction']
+        print("First 5 rows of the processed data:")
+        print(self.data.head())
         return self.data
 
     def split_data(self):
@@ -74,6 +83,15 @@ class DataProcessor:
         importances = self.rf_model.feature_importances_
         feature_names = self.features.columns
         feature_importance_dict = dict(zip(feature_names, importances))
+
+        # Aggregate the importance of one-hot encoded 'Class' features
+        class_importance = sum(importance for name, importance in feature_importance_dict.items() if 'Class_' in name)
+        feature_importance_dict['Class'] = class_importance
+        
+        for key in list(feature_importance_dict.keys()):
+            if 'Class_' in key:
+                del feature_importance_dict[key]
+
         importances_df = pd.DataFrame(sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True),
         columns=['Feature', 'Importance'])
         
@@ -81,12 +99,12 @@ class DataProcessor:
 
     def plot_feature_importance(self):
         importances_df = self.feature_importance()
-        plt.figure(figsize=(12, 10))  # Adjust the figure size
+        plt.figure(figsize=(12, 10))  
         sns.barplot(x='Importance', y='Feature', data=importances_df)
         plt.title('Feature Importance')
         plt.xlabel('Importance')
         plt.ylabel('Features')
-        plt.subplots_adjust(left=0.3)  # Adjust the left margin
+        plt.subplots_adjust(left=0.3)  
         plt.show()
 
 # Usage

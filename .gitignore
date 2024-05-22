@@ -1,0 +1,6 @@
+venv/Lib/site-packages/
+venv/Scripts/fonttools.exe
+venv/Scripts/pyftmerge.exe
+venv/Scripts/pyftsubset.exe
+venv/Scripts/ttx.exe
+venv/share/man/man1/ttx.1
