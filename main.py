@@ -49,11 +49,9 @@ class DataProcessor:
         return self.data
 
     def combine_class_features(self):
-        # Check if class dummies exist
+        # Combine class features
         if 'Class_Business' in self.data.columns and 'Class_Eco' in self.data.columns and 'Class_Eco Plus' in self.data.columns:
-            # Combine class features into a single feature by simple averaging
             self.data['Class'] = (self.data['Class_Business'] * 2 + self.data['Class_Eco'] + self.data['Class_Eco Plus']) / 4
-            # Drop the individual class columns
             self.data.drop(['Class_Business', 'Class_Eco', 'Class_Eco Plus'], axis=1, inplace=True)
         else:
             print("Class columns are not found in the data.")
@@ -159,6 +157,31 @@ class DataProcessor:
         plt.subplots_adjust(left=0.3)  
         plt.show()
 
+    def plot_distributions(self):
+        plt.figure(figsize=(18, 5))
+
+    
+        plt.subplot(1, 3, 1)
+        sns.histplot(self.data['Online boarding'], kde=True, color='blue')
+        plt.title('Distribution of Online Boarding')
+
+       
+        plt.subplot(1, 3, 2)
+        sns.histplot(self.data['Inflight wifi service'], kde=True, color='green')
+        plt.title('Distribution of Inflight Wifi Service')
+
+       
+        plt.subplot(1, 3, 3)
+    
+        if 'Class' in self.data.columns:
+            sns.histplot(self.data['Class'], bins=len(self.data['Class'].unique()), color='orange')
+        else:  
+            total_class = self.data[[col for col in self.data.columns if 'Class_' in col]].idxmax(axis=1)
+            sns.histplot(total_class, color='orange')
+        plt.title('Distribution of Class')
+
+        plt.tight_layout()
+        plt.show()
 
 if __name__ == "__main__":
     processor = DataProcessor('Dataset/data.csv')
@@ -166,6 +189,7 @@ if __name__ == "__main__":
     processor.split_data()
     processor.train_model()
     processor.plot_feature_importance()
+    processor.plot_distributions()
     processor.combine_class_features()  
     processor.plot_correlation_matrix()
     processor.evaluate_model()
