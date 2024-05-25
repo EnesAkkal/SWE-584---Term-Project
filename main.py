@@ -17,7 +17,6 @@ class DataProcessor:
         self.lr_model = LogisticRegression(random_state=42, max_iter=50)
         print(self.data.columns)
 
-
     @staticmethod
     def transform_gender(x):
         return 1 if x == 'Female' else 0 if x == 'Male' else -1
@@ -49,6 +48,16 @@ class DataProcessor:
         print(self.data.head())
         return self.data
 
+    def combine_class_features(self):
+        # Check if class dummies exist
+        if 'Class_Business' in self.data.columns and 'Class_Eco' in self.data.columns and 'Class_Eco Plus' in self.data.columns:
+            # Combine class features into a single feature by simple averaging
+            self.data['Class'] = (self.data['Class_Business'] * 2 + self.data['Class_Eco'] + self.data['Class_Eco Plus']) / 4
+            # Drop the individual class columns
+            self.data.drop(['Class_Business', 'Class_Eco', 'Class_Eco Plus'], axis=1, inplace=True)
+        else:
+            print("Class columns are not found in the data.")
+
     def split_data(self):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
             self.features, self.target, test_size=0.5, random_state=42
@@ -78,12 +87,23 @@ class DataProcessor:
         print("Logistic Regression Accuracy:", accuracy_score(self.y_test, lr_pred))
         print("Logistic Regression Classification Report:")
         print(classification_report(self.y_test, lr_pred))
-    
+
+    def plot_correlation_matrix(self):
+        plt.figure(figsize=(20, 16))
+        correlation_matrix = self.data.corr()
+        sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap='coolwarm')
+        plt.title('Correlation Matrix Heatmap', fontsize=18)
+        plt.xticks(rotation=90, fontsize=10)
+        plt.yticks(rotation=0, fontsize=10)
+        plt.tight_layout()
+        plt.show()
+
     def feature_importance(self):
         importances = self.rf_model.feature_importances_
         feature_names = self.features.columns
         feature_importance_dict = dict(zip(feature_names, importances))
 
+       
         class_importance = sum(importance for name, importance in feature_importance_dict.items() if 'Class_' in name)
         feature_importance_dict['Class'] = class_importance
         
@@ -106,7 +126,7 @@ class DataProcessor:
         plt.subplots_adjust(left=0.3)  
         plt.show()
 
-
+# Usage
 if __name__ == "__main__":
     processor = DataProcessor('Dataset/data.csv')
     processor.process_data()
@@ -114,3 +134,5 @@ if __name__ == "__main__":
     processor.train_model()
     processor.evaluate_model()
     processor.plot_feature_importance()
+    processor.combine_class_features()  
+    processor.plot_correlation_matrix()
