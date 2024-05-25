@@ -10,6 +10,7 @@ To run this project, you need to install the required Python libraries specified
    python -m venv venv
 
 4. Active the virtual environement.
+
 -> For Unix/Mac:
 source venv/bin/activate
 
