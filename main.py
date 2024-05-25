@@ -134,7 +134,6 @@ class DataProcessor:
         feature_names = self.features.columns
         feature_importance_dict = dict(zip(feature_names, importances))
 
-       
         class_importance = sum(importance for name, importance in feature_importance_dict.items() if 'Class_' in name)
         feature_importance_dict['Class'] = class_importance
         
@@ -144,7 +143,6 @@ class DataProcessor:
 
         importances_df = pd.DataFrame(sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True),
         columns=['Feature', 'Importance'])
-        
         return importances_df
 
     def plot_feature_importance(self):
@@ -159,18 +157,12 @@ class DataProcessor:
 
     def plot_distributions(self):
         plt.figure(figsize=(18, 5))
-
-    
         plt.subplot(1, 3, 1)
         sns.histplot(self.data['Online boarding'], kde=True, color='blue')
         plt.title('Distribution of Online Boarding')
-
-       
         plt.subplot(1, 3, 2)
         sns.histplot(self.data['Inflight wifi service'], kde=True, color='green')
         plt.title('Distribution of Inflight Wifi Service')
-
-       
         plt.subplot(1, 3, 3)
     
         if 'Class' in self.data.columns:
