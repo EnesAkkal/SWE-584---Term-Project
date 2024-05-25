@@ -84,7 +84,6 @@ class DataProcessor:
         feature_names = self.features.columns
         feature_importance_dict = dict(zip(feature_names, importances))
 
-        # Aggregate the importance of one-hot encoded 'Class' features
         class_importance = sum(importance for name, importance in feature_importance_dict.items() if 'Class_' in name)
         feature_importance_dict['Class'] = class_importance
         
@@ -107,9 +106,9 @@ class DataProcessor:
         plt.subplots_adjust(left=0.3)  
         plt.show()
 
-# Usage
+
 if __name__ == "__main__":
-    processor = DataProcessor('Dataset/train.csv')
+    processor = DataProcessor('Dataset/data.csv')
     processor.process_data()
     processor.split_data()
     processor.train_model()
